@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.syntax.option._
 import com.advancedtelematic.libats.data.DataType.{CampaignId, CorrelationId, MultiTargetUpdateId}
 import com.advancedtelematic.libats.messaging_datatype.DataType.{DeviceId, Event, EventType}
-import com.advancedtelematic.libats.test.DatabaseSpec
+import com.advancedtelematic.ota.deviceregistry.DatabaseSpec
 import com.advancedtelematic.ota.deviceregistry.data.DataType.{IndexedEvent, IndexedEventType}
 import com.advancedtelematic.ota.deviceregistry.data.GeneratorOps._
 import io.circe.Json

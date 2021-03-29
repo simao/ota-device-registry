@@ -4,7 +4,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.advancedtelematic.libats.data.DataType.ResultCode
 import com.advancedtelematic.libats.messaging.MessageBusPublisher
 import com.advancedtelematic.libats.messaging_datatype.MessageCodecs.deviceUpdateCompletedCodec
-import com.advancedtelematic.libats.test.DatabaseSpec
+import com.advancedtelematic.ota.deviceregistry.DatabaseSpec
 import com.advancedtelematic.ota.deviceregistry.data.DataType.{DeviceInstallationResult, EcuInstallationResult}
 import com.advancedtelematic.ota.deviceregistry.data.GeneratorOps._
 import com.advancedtelematic.ota.deviceregistry.data.InstallationReportGenerators

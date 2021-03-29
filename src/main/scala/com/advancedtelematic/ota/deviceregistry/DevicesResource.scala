@@ -9,7 +9,6 @@
 package com.advancedtelematic.ota.deviceregistry
 
 import java.time.{Instant, OffsetDateTime}
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
@@ -45,7 +44,7 @@ import com.advancedtelematic.ota.deviceregistry.data.{GroupExpression, PackageId
 import com.advancedtelematic.ota.deviceregistry.db.DbOps.PaginationResultOps
 import com.advancedtelematic.ota.deviceregistry.db._
 import com.advancedtelematic.ota.deviceregistry.messages.DeviceCreated
-import io.circe.Json
+import io.circe.{Decoder, Json}
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -60,12 +59,13 @@ object DevicesResource {
     io.circe.Decoder.instance { c =>
       for {
         id         <- c.get[String]("id")
-        deviceTime <- c.get[Instant]("deviceTime")(io.circe.java8.time.decodeInstant)
+        deviceTime <- c.get[Instant]("deviceTime")
         eventType  <- c.get[EventType]("eventType")
         payload    <- c.get[Json]("event")
       } yield
-        (deviceUuid: DeviceId, receivedAt: Instant) =>
+        (deviceUuid: DeviceId, receivedAt: Instant) => {
           Event(deviceUuid, id, eventType, deviceTime, receivedAt, payload)
+        }
     }
 
   implicit val groupIdUnmarshaller: Unmarshaller[String, GroupId] = GroupId.unmarshaller

@@ -1,46 +1,62 @@
 package com.advancedtelematic.ota.deviceregistry
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import com.advancedtelematic.libats.http.BootApp
+import com.advancedtelematic.libats.http.{BootApp, BootAppDatabaseConfig, BootAppDefaultConfig}
 import com.advancedtelematic.libats.http.VersionDirectives.versionHeaders
 import com.advancedtelematic.libats.messaging.{MessageBus, MessageListenerSupport}
 import com.advancedtelematic.libats.messaging_datatype.Messages.{DeleteDeviceRequest, DeviceEventMessage, DeviceSeen, DeviceUpdateEvent, EcuReplacement}
-import com.advancedtelematic.libats.slick.db.{BootMigrations, CheckMigrations, DatabaseConfig}
+import com.advancedtelematic.libats.slick.db.{BootMigrations, CheckMigrations, DatabaseSupport}
 import com.advancedtelematic.libats.slick.monitoring.DbHealthResource
 import com.advancedtelematic.metrics.prometheus.PrometheusMetricsSupport
 import com.advancedtelematic.metrics.{MetricsSupport, MonitoredBusListenerSupport}
 import com.advancedtelematic.ota.deviceregistry.daemon.{DeleteDeviceListener, DeviceEventListener, DeviceSeenListener, DeviceUpdateEventListener, EcuReplacementListener}
+import com.codahale.metrics.MetricRegistry
+import com.typesafe.config.Config
+import org.slf4j.LoggerFactory
 
-object DaemonBoot extends BootApp
-  with DatabaseConfig
+import scala.concurrent.Future
+
+class DeviceRegistryDaemon(override val appConfig: Config,
+                 override val dbConfig: Config,
+                 override val metricRegistry: MetricRegistry)
+                (implicit override val system: ActorSystem) extends BootApp
+  with DatabaseSupport
   with BootMigrations
-  with CheckMigrations
   with MessageListenerSupport
   with MonitoredBusListenerSupport
   with MetricsSupport
+  with Settings
   with PrometheusMetricsSupport
   with VersionInfo {
 
-  implicit val _db = db
+  import system.dispatcher
 
-  lazy val messageBus = MessageBus.publisher(system, config)
+  private lazy val log = LoggerFactory.getLogger(this.getClass)
 
-  log.info("Starting daemon service")
+  def bind(): Future[ServerBinding] = {
+    lazy val messageBus = MessageBus.publisher(system, appConfig)
 
-  startMonitoredListener[DeviceSeen](new DeviceSeenListener(messageBus))
-  startMonitoredListener[DeviceEventMessage](new DeviceEventListener)
-  startMonitoredListener[DeleteDeviceRequest](new DeleteDeviceListener)
-  startMonitoredListener[DeviceUpdateEvent](new DeviceUpdateEventListener(messageBus))
-  startMonitoredListener[EcuReplacement](new EcuReplacementListener)
+    log.info("Starting daemon service")
 
-  val routes: Route = versionHeaders(version) {
-    DbHealthResource(versionMap).route
-  } ~ prometheusMetricsRoutes
+    startMonitoredListener[DeviceSeen](new DeviceSeenListener(messageBus))
+    startMonitoredListener[DeviceEventMessage](new DeviceEventListener)
+    startMonitoredListener[DeleteDeviceRequest](new DeleteDeviceListener)
+    startMonitoredListener[DeviceUpdateEvent](new DeviceUpdateEventListener(messageBus))
+    startMonitoredListener[EcuReplacement](new EcuReplacementListener)
 
-  val host = config.getString("server.host")
-  val port = config.getInt("server.port")
+    val routes: Route = versionHeaders(version) {
+      DbHealthResource(versionMap, metricRegistry = metricRegistry).route
+    } ~ prometheusMetricsRoutes
 
-  Http().bindAndHandle(routes, host, port)
+    Http().bindAndHandle(routes, host, port)
+  }
+
+}
+
+object DaemonBoot extends BootAppDefaultConfig with BootAppDatabaseConfig with VersionInfo {
+  new DeviceRegistryDaemon(appConfig, dbConfig, new MetricRegistry)(ActorSystem("deviceregistry-actor-system"))
 }

@@ -17,7 +17,6 @@ import com.advancedtelematic.libats.http.ServiceHttpClientSupport
 import com.advancedtelematic.libats.http.tracing.NullServerRequestTracing
 import com.advancedtelematic.libats.messaging.MessageBus
 import com.advancedtelematic.libats.messaging_datatype.DataType.DeviceId
-import com.advancedtelematic.libats.test.DatabaseSpec
 import com.advancedtelematic.ota.deviceregistry.data.{DeviceGenerators, GroupGenerators, PackageIdGenerators, SimpleJsonGenerator}
 import com.advancedtelematic.ota.deviceregistry.db.DeviceRepository
 import org.scalatest.{BeforeAndAfterAll, Matchers, PropSpec, Suite}

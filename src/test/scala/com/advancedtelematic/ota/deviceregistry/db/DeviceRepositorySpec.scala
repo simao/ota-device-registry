@@ -9,9 +9,9 @@
 package com.advancedtelematic.ota.deviceregistry.db
 
 import java.time.Instant
-
-import com.advancedtelematic.libats.test.{DatabaseSpec, LongTest}
+import com.advancedtelematic.libats.test.LongTest
 import com.advancedtelematic.libats.slick.db.SlickUUIDKey._
+import com.advancedtelematic.ota.deviceregistry.DatabaseSpec
 import com.advancedtelematic.ota.deviceregistry.data.DeviceGenerators.{genDeviceId, genDeviceT}
 import com.advancedtelematic.ota.deviceregistry.data.DataType.DeletedDevice
 import com.advancedtelematic.ota.deviceregistry.data.Namespaces

@@ -39,8 +39,8 @@ lazy val library =
       val attoCore = "0.7.1"
       val scalaCheck = "1.14.1"
       val scalaTest  = "3.0.8"
-      val libAts     = "0.4.0-8-g8c1c7f3"
-      val libTuf = "0.7.1-16-g4a20341"
+      val libAts     = "0.4.0-17-ga03bec5-SNAPSHOT"
+      val libTuf = "0.7.1-23-g3ea21d4-SNAPSHOT"
       val akka = "2.6.5"
       val akkaHttp = "10.1.12"
       val alpakkaCsv = "2.0.0"
@@ -83,7 +83,6 @@ lazy val library =
 lazy val settings =
 commonSettings ++
 gitSettings ++
-scalafmtSettings ++
 buildInfoSettings ++
 dockerSettings ++
 sonarSettings
@@ -131,17 +130,13 @@ lazy val dockerSettings = Seq(
   )
 )
 
-lazy val scalafmtSettings =
-  Seq(
-    scalafmtOnCompile := false,
-    scalafmtOnCompile.in(Sbt) := false,
-    scalafmtVersion := "1.3.0"
-  )
-
 lazy val buildInfoSettings = Seq(
-  buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-  buildInfoPackage := organization.value,
-  buildInfoOptions ++= Seq(BuildInfoOption.ToJson, BuildInfoOption.ToMap)
+  buildInfoOptions += BuildInfoOption.ToMap,
+  buildInfoOptions += BuildInfoOption.BuildTime,
+  buildInfoObject := "AppBuildInfo",
+  buildInfoPackage := "com.advancedtelematic.deviceregistry",
+  buildInfoUsePackageAsPath := true,
+  buildInfoOptions += BuildInfoOption.Traits("com.advancedtelematic.libats.boot.VersionInfoProvider")
 )
 
 lazy val sonarSettings = Seq(
